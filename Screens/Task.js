@@ -14,20 +14,66 @@ export default class Task extends React.Component {
     super();
     this.state = {
       Task: "",
+      AllTasks:[],
     };
   }
-  SaveTask = () => {
+  
+  AddTask = () => {
+    var task = this.state.Task
     db.collecttion("Tasks").add({
-      Task: this.state.Task,
-      Completed: "Nope",
+      "Task": task,
+      "Completed": "Nope",
     });
+    
+    console.log("save")
   };
+
+  GetTask = () => {
+    db.collection("Tasks").where("Completed", "==","Nope")
+    .onSnapshot((snapshot)=>{
+      var AllTasks = snapshot.docs.map((doc) => doc.data())
+      this.setState({
+        AllTasks : AllTasks
+      });
+    })
+  }
+
+  componentDidMount() {
+    this.GetTask();
+  }
+
+  keyExtractor = (item, index) => index.toString()
+
+  renderItem = ( {item, i} ) =>{
+    return (
+      <ListItem
+        key={i}
+        title={item.Task}
+        titleStyle={{ color: 'black', fontWeight: 'bold' }}
+        rightElement={
+            <TouchableOpacity style={styles.button}
+              onPress ={()=>{
+               
+              }}
+              >
+              <Text style={{color:'#ffff'}}>Done</Text>
+            </TouchableOpacity>
+          }
+        bottomDivider
+      />
+    )
+  }
 
   render() {
     return (
       <View styles={styles.container}>
         <Text style={styles.title}>Tasks</Text>
         <View style={styles.inputContainer}>
+        <FlatList
+              keyExtractor={this.keyExtractor}
+              data={this.state.AllTasks}
+              renderItem={this.renderItem}
+            />
         <TextInput
           style={styles.TaskInput}
           placeholder={"Task to do"}
@@ -41,7 +87,7 @@ export default class Task extends React.Component {
         <TouchableOpacity
           style={styles.button}
           onPress={() => {
-            this.SaveTask();
+            this.AddTask();
           }}
         >
           <Text>Save</Text>
@@ -101,6 +147,7 @@ const styles = StyleSheet.create({
     marginTop:20
     },
     inputContainer:{
-      flex: 0.3
+      flex: 0.3,
+      flexDirection:'row'
     }
 });
